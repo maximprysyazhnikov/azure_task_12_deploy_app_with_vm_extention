@@ -81,8 +81,8 @@ $publicIp = New-AzPublicIpAddress `
     -Name $publicIpName `
     -ResourceGroupName $resourceGroupName `
     -Location $location `
-    -AllocationMethod Dynamic `
-    -Sku Basic `
+    -AllocationMethod Static `
+    -Sku Standard `
     -DomainNameLabel $dnsLabel
 
 # 6. NIC
