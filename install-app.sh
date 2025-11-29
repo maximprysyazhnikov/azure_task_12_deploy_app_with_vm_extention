@@ -39,12 +39,15 @@ fi
 log "Installing Python dependencies from requirements.txt..."
 pip3 install --no-cache-dir -r requirements.txt
 
+log "Applying Django migrations..."
+python3 manage.py migrate --noinput
+
 log "Stopping any process on port 8080 (if any)..."
 if command -v fuser >/dev/null 2>&1; then
   fuser -k 8080/tcp || true
 fi
 
-log "Starting todo app on port 8080..."
-nohup python3 app.py --host 0.0.0.0 --port 8080 >> "$LOG_FILE" 2>&1 &
+log "Starting Django todo app on port 8080..."
+nohup python3 manage.py runserver 0.0.0.0:8080 >> "$LOG_FILE" 2>&1 &
 
 log "Install script finished successfully"
