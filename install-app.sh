@@ -9,15 +9,23 @@ SERVICE_NAME="todo-app"
 
 echo "[install-app] Start install script"
 
-# 1. Оновлюємо пакети і ставимо залежності
+# 1. Оновлюємо пакети і вмикаємо universe-репозиторій
 sudo apt-get update -y
+sudo apt-get install -y software-properties-common
+
+# У деяких образах universe може бути вимкнений, тоді python3-venv / python3-pip недоступні
+sudo add-apt-repository -y universe || true
+sudo apt-get update -y
+
+# 2. Ставимо залежності
+# Якщо раптом python3-venv / python3-pip знову не знайдуться — це буде видно в логах extension
 sudo apt-get install -y python3 python3-venv python3-pip git
 
-# 2. Готуємо директорію для застосунку
+# 3. Готуємо директорію для застосунку
 sudo mkdir -p "$APP_ROOT"
 sudo chown "$USER":"$USER" "$APP_ROOT"
 
-# 3. Клонуємо/оновлюємо репозиторій
+# 4. Клонуємо/оновлюємо репозиторій
 if [ -d "$APP_ROOT/.git" ]; then
   echo "[install-app] Repo already exists, pulling latest changes..."
   cd "$APP_ROOT"
@@ -27,7 +35,7 @@ else
   git clone "$REPO_URL" "$APP_ROOT"
 fi
 
-# 4. Інсталюємо Python-залежності
+# 5. Інсталюємо Python-залежності
 cd "$APP_DIR"
 
 python3 -m venv venv
@@ -38,8 +46,7 @@ if [ -f "requirements.txt" ]; then
   pip install -r requirements.txt
 fi
 
-# 5. Створюємо systemd сервіс, щоб апка стартувала автоматично
-#    Припускаємо, що точка входу - app.py, який слухає порт 8080
+# 6. Створюємо systemd сервіс, щоб апка стартувала автоматично
 sudo tee /etc/systemd/system/${SERVICE_NAME}.service > /dev/null << EOF
 [Unit]
 Description=Todo web app
@@ -56,7 +63,7 @@ Restart=always
 WantedBy=multi-user.target
 EOF
 
-# 6. Вмикаємо сервіс
+# 7. Вмикаємо сервіс
 sudo systemctl daemon-reload
 sudo systemctl enable ${SERVICE_NAME}
 sudo systemctl restart ${SERVICE_NAME}
